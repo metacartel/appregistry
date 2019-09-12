@@ -23,9 +23,6 @@ pragma solidity >0.5.6 <0.6.0;
         uint public memberIndex;            // tracks bootstrap airdop process
         uint public currentBallotIndex;     // tracks current ballot
 
-        uint public debugPollEndTime;
-        uint public debugNow;
-
         /******
          EVENTS
          ******/
@@ -366,9 +363,6 @@ pragma solidity >0.5.6 <0.6.0;
             require(_r != bytes32(0), "invalid r");
             require(_s != bytes32(0), "invalid s");
             require(poll.endTime > now, "poll no longer open");
-
-            debugPollEndTime = poll.endTime;
-            debugNow = now;
 
             Submission memory submission = Submission(
                 Vote.Null,
