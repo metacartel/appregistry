@@ -1,0 +1,36 @@
+{
+    "name": "appregistry",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Welcome to the MetaCartel App Registry.  The app registry is a token curated registry of Ethereum apps curated by the MetaCartel community.",
+    "license": "ISC",
+    "scripts": {
+        "compile": "truffle compile",
+        "test": "truffle test",
+        "test:verbose": "truffle test --show-events"
+    },
+    "dependencies": {
+        "bignumber.js": "^9.0.0",
+        "ethers": "^4.0.37",
+        "ethjs-provider-http": "^0.1.6",
+        "ethjs-rpc": "^0.2.0",
+        "truffle": "^5.0.36",
+        "truffle-hdwallet-provider": "^1.0.17"
+    },
+    "devDependencies": {
+        "husky": "^3.0.5",
+        "lint-staged": "^9.2.5",
+        "prettier": "^1.18.2"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.{ts,tsx,js,jsx,json,css,md}": [
+            "prettier --write --config ./.prettierrc",
+            "git add"
+        ]
+    }
+}
