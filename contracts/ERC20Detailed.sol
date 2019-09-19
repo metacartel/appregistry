@@ -22,11 +22,11 @@ contract ERC20Detailed is ERC20 {
      * these values are immutable: they can only be set once during
      * construction.
      */
-    constructor (string memory name, string memory symbol, uint8 decimals) public {
+    constructor (string memory name, string memory symbol, uint8 decimals, address owner) public {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
-        _owner = msg.sender;
+        _owner = owner;
     }
 
     

@@ -101,12 +101,11 @@ contract Registry {
         return didRagequit;
     }
 
-    function start() public returns (bool) {
+    function start(address _token) public returns (bool) {
         require(didStart == false, "TCR already started");
         require(didRagequit == true, "need to ragequit before starting TCR");
-        tcrContract = new TCR(address(this), votingDurationSecs, revealDurationSecs, name, symbol, decimals, bootstrapList);
 
-        tcrContract.start();
+        tcrContract.start(_token);
         didStart = true;
 
         emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);

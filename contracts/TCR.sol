@@ -162,9 +162,9 @@ pragma solidity >0.5.6 <0.6.0;
             address _owner,
             uint _votingDurationSecs,
             uint _revealDurationSecs,
-            string memory _name,
-            string memory _symbol,
-            uint8 _decimals,
+            // string memory _name,
+            // string memory _symbol,
+            // uint8 _decimals,
             address _bootstrapList
         ) public {
             require(_owner != address(0), "_owner can not be 0");
@@ -173,21 +173,21 @@ pragma solidity >0.5.6 <0.6.0;
             owner = _owner;
             votingDurationSecs = _votingDurationSecs;
             revealDurationSecs = _revealDurationSecs;
-            name = _name;
-            symbol = _symbol;
-            decimals = _decimals;
-
             bootstrapList = BootstrapList(_bootstrapList);
-
-            // launch TCR token contract
-            token = new ERC20Detailed(name, symbol, decimals);
-            require(token.mint(address(this), 1), "error in minting process");
 
             emit Deployed(owner, votingDurationSecs, revealDurationSecs, name, symbol, decimals, address(bootstrapList));
         }
 
-        function start() public onlyOwner returns(bool) {
+        function start(address _token) public onlyOwner returns(bool) {
            require(startDate == 0, "TCR already started");
+
+            // launch TCR token
+            // token = new ERC20Detailed(name, symbol, decimals);
+            // require(token.mint(address(this), 1), "error in minting process");
+
+            token = ERC20Detailed(_token);
+            require(token.mint(address(this), 1), "error in minting token");
+
             string memory entry = bootstrapList.entry();
 
             // bootstrap ballot submission to avoid future bootstrap checks

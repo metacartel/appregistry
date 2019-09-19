@@ -5,7 +5,8 @@ const SimpleToken = artifacts.require("SimpleToken");
 const BootstrapList = artifacts.require("BootstrapList");
 const Moloch = artifacts.require("Moloch");
 const Registry = artifacts.require("Registry");
-
+const TCR = artifacts.require("TCR");
+const Token = artifacts.require("ERC20Detailed");
 const CONF = require('./conf.json');
 
 module.exports = (deployer, network, accounts) => {
@@ -24,13 +25,42 @@ module.exports = (deployer, network, accounts) => {
             new BigNumber(CONF.PROPOSAL_DEPOSIT),
             CONF.DILUTION_BOUND,
             new BigNumber(CONF.PROCESSING_REWARD),
-            { gas: 6000000 }
+            { gas: 7000000 }
+        );
+
+        const registry = await deployer.deploy(
+            Registry,
+            moloch.address,
+            simpleToken.address,
+            bootstrapList.address,
+            CONF.TCR_VOTING_DURATION_SECS,
+            CONF.TCR_REVEAL_DURATION_SECS,
+            CONF.TCR_TOKEN_NAME,
+            CONF.TCR_TOKEN_SYMBOL,
+            CONF.TCR_TOKEN_DECIMALS
+        );
+
+        const tcr = await deployer.deploy(
+            TCR,
+            registry.address,
+            CONF.TCR_VOTING_DURATION_SECS,
+            CONF.TCR_REVEAL_DURATION_SECS,
+            bootstrapList.address
+        );
+
+        const token = await deployer.deploy(
+            Token,
+            CONF.TCR_TOKEN_NAME,
+            CONF.TCR_TOKEN_SYMBOL,
+            CONF.TCR_TOKEN_DECIMALS,
+            tcr.address
         );
 
         const output = {
             moloch: moloch.address,
             approvedToken: simpleToken.address,
             boostrapList: bootstrapList.address,
+            tcrToken: token.address,
             votingDuration: CONF.TCR_VOTING_DURATION_SECS,
             revealDuration: CONF.TCR_REVEAL_DURATION_SECS,
             tokenName: CONF.TCR_TOKEN_NAME,
@@ -39,28 +69,6 @@ module.exports = (deployer, network, accounts) => {
         }
 
         fs.writeFileSync('./output.json', JSON.stringify(output));
-        
-        // console.log(output);
-        
-        // const registry = await deployer.deploy(
-        //     Registry,
-        //     // moloch.address,
-        //     // simpleToken.address,
-        //     // bootstrapList.address,
-        //     // CONF.TCR_VOTING_DURATION_SECS,
-        //     // CONF.TCR_REVEAL_DURATION_SECS,
-        //     // CONF.TCR_TOKEN_NAME,
-        //     // CONF.TCR_TOKEN_SYMBOL,
-        //     // CONF.TCR_TOKEN_DECIMALS,
-        //     "0xC3e84f91d6bDeCAe376c17aaDcffCed19DC91Ec0",
-        //     "0x6ea761067e787D43e0e82D2eb4b98c1e6899e4C3",
-        //     "0x195A95671444D895261aA3DC9F9b9B95c648bB61",
-        //     "60",
-        //     "60",
-        //     "TCRTOKEN",
-        //     "TCR",
-        //     "18",
-        //     { gas: 6000000 }
-        // );
+        console.log(output);
     });
 };
