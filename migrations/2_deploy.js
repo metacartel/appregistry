@@ -1,17 +1,17 @@
-const fs = require('fs')
-const BigNumber = require('bignumber.js')
+const fs = require('fs');
+const BigNumber = require('bignumber.js');
 
-const SimpleToken = artifacts.require("SimpleToken");
-const BootstrapList = artifacts.require("BootstrapList");
-const Moloch = artifacts.require("Moloch");
-const Registry = artifacts.require("Registry");
-const TCR = artifacts.require("TCR");
-const Token = artifacts.require("ERC20Detailed");
+const SimpleToken = artifacts.require('ERC20');
+const BootstrapList = artifacts.require('BootstrapList');
+const Moloch = artifacts.require('Moloch');
+const Registry = artifacts.require('Registry');
+const TCR = artifacts.require('TCR');
+const Token = artifacts.require('ERC20Detailed');
 const CONF = require('./conf.json');
 
 module.exports = (deployer, network, accounts) => {
     deployer.then(async () => {
-        const simpleToken  = await deployer.deploy(SimpleToken);
+        const simpleToken = await deployer.deploy(SimpleToken);
         const bootstrapList = await deployer.deploy(BootstrapList);
 
         const moloch = await deployer.deploy(
@@ -65,10 +65,18 @@ module.exports = (deployer, network, accounts) => {
             revealDuration: CONF.TCR_REVEAL_DURATION_SECS,
             tokenName: CONF.TCR_TOKEN_NAME,
             tokenSymbol: CONF.TCR_TOKEN_SYMBOL,
-            tokenDecimals: CONF.TCR_TOKEN_DECIMALS
-        }
+            tokenDecimals: CONF.TCR_TOKEN_DECIMALS,
+        };
 
         fs.writeFileSync('./output.json', JSON.stringify(output));
         console.log(output);
+
+        // const shares = '1';
+
+        // const rageQuitTx = await registry.ragequit(shares);
+        // console.log('rageQuitTx:', rageQuitTx);
+
+        // const initTx = await registry.start(token.address);
+        // console.log('initTx:', initTx);
     });
 };

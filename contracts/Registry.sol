@@ -80,10 +80,20 @@ contract Registry {
         symbol = _symbol;
         decimals = _decimals;
 
-        emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
+        // emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
     }
 
-    function ragequit(uint _shares) public returns(bool) {
+    // submit grant for registry. get accepted into moloch
+    // apply for members in moloch b4 registry bc summoner only has 1 share
+    // summoner needs to submit proposals, otherwise guild bank doesnt have funds
+    // summoner is the deployer. you need at least 1 share to vote.
+    // member of dao must nominate new member
+    // funds that 1 member puts into moloch can be sent to registry via ragequit
+
+    // Moloch.ragequit requires cooldown period
+    // anyone can send funds during this time, perhaps fuckin up the bonding curve
+    // dao grant forcibly increased w/ WETH sent to TCR
+    function ragequit(address _tcr, uint _shares) public returns(bool) {
         require(didRagequit == false, "can only ragequit once");
         require(_shares > 0, "shares must be greater than zero");
 
@@ -91,13 +101,14 @@ contract Registry {
         grantor.call(abi.encodeWithSignature("ragequit(uint)", _shares));
         fundingTotal = approvedToken.balanceOf(address(this));
 
+        tcrContract = TCR(_tcr);
         require(fundingTotal > balanceBeforeRagequit, "token balance did not increase after ragequit");
         require(approvedToken.transfer(address(tcrContract), fundingTotal), "grant transfer to TCR failed");
 
         shares = _shares;
         didRagequit = true;
 
-        emit Ragequit(grantor, shares, fundingTotal);
+        // emit Ragequit(grantor, shares, fundingTotal);
         return didRagequit;
     }
 
@@ -108,7 +119,7 @@ contract Registry {
         tcrContract.start(_token);
         didStart = true;
 
-        emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
+        // emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
         return didStart;
     }
 }
