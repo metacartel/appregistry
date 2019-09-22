@@ -64,6 +64,7 @@ pragma solidity >0.5.6 <0.6.0;
             string entry,
             uint amount,
             string details,
+            address owner,
             uint currentPollId,
             uint pollId
         );
@@ -121,10 +122,11 @@ pragma solidity >0.5.6 <0.6.0;
         struct Ballot {
             BallotType action;          // add or remove action
             address applicant;          // applicant submitting ballot
-            string ens;                 // entry in to registry
-            uint deposit;                // vote deposit
+            string entry;               // entry in to registry
+            uint deposit;               // vote deposit
             bool processed;             // ballot should only be processed once
             string details;             // arbitrary details regarding ballot
+            address owner;              // owner of entry
             mapping (
                 address => Submission
             ) votesByVoter;             // track voters
@@ -138,8 +140,9 @@ pragma solidity >0.5.6 <0.6.0;
 
         struct Registry {
             address applicant;  // applicant that submitted entry
-            bool valid;         // valid ens entry
+            bool valid;         // valid entry
             string details;     // arbitrary string data
+            address owner;      // owner address responsible for entry
         }
 
         Tally[] public tallyQueue;      // divided in to several
@@ -197,7 +200,8 @@ pragma solidity >0.5.6 <0.6.0;
                 entry,
                 1,
                 false,
-                "bootstrap ballot"
+                "bootstrap ballot",
+                address(this)
             );
 
             Tally memory bootstrapTally = Tally(
@@ -289,9 +293,10 @@ pragma solidity >0.5.6 <0.6.0;
 
         function submit(
             BallotType _action,
-            string  memory _ensSubmission,
+            string  memory _entrySubmission,
             uint _submissionAmount,
-            string memory _details
+            string memory _details,
+            address _owner
             )
             public isReady returns (uint) {
 
@@ -304,11 +309,11 @@ pragma solidity >0.5.6 <0.6.0;
 
             require(_action == BallotType.Add || _action == BallotType.Remove,"invalid ballot action");
             if (_action == BallotType.Add) {
-                require(tcr[_ensSubmission].valid == false, "submission already exists");
+                require(tcr[_entrySubmission].valid == false, "submission already exists");
                 yesVote = 1;
             }
             if (_action == BallotType.Remove) {
-                require(tcr[_ensSubmission].valid == true, "submission does not exist");
+                require(tcr[_entrySubmission].valid == true, "submission does not exist");
                 noVote = 1;
             }
             require(_submissionAmount > 0, "deposit error");
@@ -325,10 +330,11 @@ pragma solidity >0.5.6 <0.6.0;
             Ballot memory newBallotAdd = Ballot(
                 _action,
                 msg.sender,
-                _ensSubmission,
+                _entrySubmission,
                 _submissionAmount,
                 false,
-                _details
+                _details,
+                _owner
             );
 
             Tally memory newTallyAdd = Tally (
@@ -347,7 +353,7 @@ pragma solidity >0.5.6 <0.6.0;
             tallyQueue.push(newTallyAdd);
             pollQueue.push(newPollAdd);
 
-            emit Submit(_action, _ensSubmission, _submissionAmount, _details, currentBallotIndex, ballotQueue.length.sub(1));
+            emit Submit(_action, _entrySubmission, _submissionAmount, _details, _owner, currentBallotIndex, ballotQueue.length.sub(1));
 
             return ballotQueue.length.sub(1);
         }
@@ -407,7 +413,7 @@ pragma solidity >0.5.6 <0.6.0;
             }
 
             tally.unrevealedAmountTotal = tally.unrevealedAmountTotal.sub(submission.amount);
-            // emit Reveal(msg.sender, submission.vote, submission.amount, currentBallotIndex);
+            emit Reveal(msg.sender, submission.vote, submission.amount, currentBallotIndex);
 
             return true;
         }
@@ -424,23 +430,24 @@ pragma solidity >0.5.6 <0.6.0;
             currentBallot.processed = true;
             currentBallotIndex = currentBallotIndex.add(1);
 
-            // TODO : tally votes and either add or remove from registry
             if (currentTally.yesVotes >= currentTally.noVotes) {
                 if (currentBallot.action == BallotType.Add) {
                     Registry memory addToRegistry = Registry(
                         currentBallot.applicant,
                         true,
-                        currentBallot.details
+                        currentBallot.details,
+                        currentBallot.owner
                     );
-                    tcr[currentBallot.ens] = addToRegistry;
+                    tcr[currentBallot.entry] = addToRegistry;
                 }
                 if (currentBallot.action == BallotType.Remove) {
                     Registry memory removeFromRegistry = Registry(
                         currentBallot.applicant,
                         false,
-                        currentBallot.details
+                        currentBallot.details,
+                        currentBallot.owner
                     );
-                    tcr[currentBallot.ens] = removeFromRegistry;
+                    tcr[currentBallot.entry] = removeFromRegistry;
                 }
             }
 
@@ -493,6 +500,19 @@ pragma solidity >0.5.6 <0.6.0;
             emit Claim(msg.sender, _pollId, claimTotal);
 
             return true;
+        }
+
+        function update(string memory _listing, string memory _details, address _owner, address _applicant) public returns (bool) {
+            Registry storage listing = tcr[_listing];
+
+            require(listing.valid == true, "not a valid listing");
+            require(_owner != address(0), "owner must be a valid address");
+            require(_applicant != address(0), "applicant must be a valid address");
+            require(msg.sender == listing.applicant || msg.sender == listing.owner, "not authorized to update listing");
+
+            listing.applicant = _applicant;
+            listing.details = _details;
+            listing.owner = _owner;
         }
 
         function memberListLength() public view returns(uint) {
