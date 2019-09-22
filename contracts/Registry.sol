@@ -93,7 +93,7 @@ contract Registry {
     // Moloch.ragequit requires cooldown period
     // anyone can send funds during this time, perhaps fuckin up the bonding curve
     // dao grant forcibly increased w/ WETH sent to TCR
-    function ragequit(uint _shares) public returns(bool) {
+    function ragequit(address _tcr, uint _shares) public returns(bool) {
         require(didRagequit == false, "can only ragequit once");
         require(_shares > 0, "shares must be greater than zero");
 
@@ -101,6 +101,7 @@ contract Registry {
         grantor.call(abi.encodeWithSignature("ragequit(uint)", _shares));
         fundingTotal = approvedToken.balanceOf(address(this));
 
+        tcrContract = TCR(_tcr);
         require(fundingTotal > balanceBeforeRagequit, "token balance did not increase after ragequit");
         require(approvedToken.transfer(address(tcrContract), fundingTotal), "grant transfer to TCR failed");
 
