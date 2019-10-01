@@ -100,7 +100,7 @@ contract Registry {
         require(_shares > 0, "shares must be greater than zero");
 
         uint balanceBeforeRagequit = approvedToken.balanceOf(address(this));
-        grantor.call(abi.encodeWithSignature("ragequit(uint)", _shares));
+        grantor.call(abi.encodeWithSignature("ragequit(uint256)", _shares));
         fundingTotal = approvedToken.balanceOf(address(this));
 
         tcrContract = TCR(_tcr);
@@ -110,7 +110,7 @@ contract Registry {
         shares = _shares;
         didRagequit = true;
 
-        // emit Ragequit(grantor, shares, fundingTotal);
+        emit Ragequit(grantor, shares, fundingTotal);
         return didRagequit;
     }
 
@@ -121,7 +121,7 @@ contract Registry {
         tcrContract.start(_token);
         didStart = true;
 
-        // emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
+        emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
         return didStart;
     }
 }
