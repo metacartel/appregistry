@@ -80,7 +80,9 @@ contract Registry {
         symbol = _symbol;
         decimals = _decimals;
 
-        // emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
+        // Necessary for `transferFrom`
+        approvedToken.approve(grantor, 10_000_000_000_000_000_000);
+        emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
     }
 
     // submit grant for registry. get accepted into moloch
