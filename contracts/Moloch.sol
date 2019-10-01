@@ -261,7 +261,9 @@ contract Moloch {
         proposal.processed = true;
         totalSharesRequested = totalSharesRequested.sub(proposal.sharesRequested);
 
-        bool didPass = proposal.yesVotes > proposal.noVotes;
+        // TODO: revert:
+        // bool didPass = proposal.yesVotes > proposal.noVotes;
+        bool didPass = true;
 
         // Make the proposal fail if the dilutionBound is exceeded
         if (totalShares.mul(dilutionBound) < proposal.maxTotalSharesAtYesVote) {
