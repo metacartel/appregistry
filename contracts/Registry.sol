@@ -80,7 +80,9 @@ contract Registry {
         symbol = _symbol;
         decimals = _decimals;
 
-        // emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
+        // Necessary for `transferFrom`
+        approvedToken.approve(grantor, 10_000_000_000_000_000_000);
+        emit Deployed(grantor, address(approvedToken), bootstrapList, votingDurationSecs, revealDurationSecs, name, symbol, decimals);
     }
 
     // submit grant for registry. get accepted into moloch
@@ -98,7 +100,7 @@ contract Registry {
         require(_shares > 0, "shares must be greater than zero");
 
         uint balanceBeforeRagequit = approvedToken.balanceOf(address(this));
-        grantor.call(abi.encodeWithSignature("ragequit(uint)", _shares));
+        grantor.call(abi.encodeWithSignature("ragequit(uint256)", _shares));
         fundingTotal = approvedToken.balanceOf(address(this));
 
         tcrContract = TCR(_tcr);
@@ -108,7 +110,7 @@ contract Registry {
         shares = _shares;
         didRagequit = true;
 
-        // emit Ragequit(grantor, shares, fundingTotal);
+        emit Ragequit(grantor, shares, fundingTotal);
         return didRagequit;
     }
 
@@ -119,7 +121,7 @@ contract Registry {
         tcrContract.start(_token);
         didStart = true;
 
-        // emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
+        emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
         return didStart;
     }
 }

@@ -6,7 +6,7 @@ import "./ERC20.sol";
 /**
  * @dev Optional functions from the ERC20 standard.
  */
-contract ERC20Detailed is ERC20 {
+contract TCRToken is ERC20 {
     string private _name;
     string private _symbol;
     uint8 private _decimals;

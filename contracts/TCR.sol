@@ -1,7 +1,7 @@
 pragma solidity >0.5.6 <0.6.0;
 
 import "./BootstrapList.sol";
-import "./ERC20Detailed.sol";
+import "./DaoToken.sol";
 import "./SafeMath.sol";
 
 contract TCR {
@@ -15,7 +15,7 @@ contract TCR {
     uint8 public decimals;              // TCR token decimals
     BootstrapList public bootstrapList; // distribution list used
     address[] public bootstrapMembers;  // initial members
-    ERC20Detailed public token;         // TCR token
+    DaoToken public token;         // TCR token
     uint public startDate;              // start date of the TCR
     bool public ready;                  // true only after all tokens have been airdropped
     uint public votingDurationSecs;     // poll time length in secs
@@ -192,10 +192,10 @@ contract TCR {
         require(startDate == 0, "TCR already started");
 
         // launch TCR token
-        // token = new ERC20Detailed(name, symbol, decimals);
+        // token = new DaoToken(name, symbol, decimals);
         // require(token.mint(address(this), 1), "error in minting process");
 
-        token = ERC20Detailed(_token);
+        token = DaoToken(_token);
         require(token.mint(address(this), 1), "error in minting token");
 
         string memory entry = bootstrapList.entry();
