@@ -314,51 +314,52 @@ contract('TCR', ([creator, alice, bob]) => {
         await tcr.processBallot();
     });
 
-    // it('submit - commit/reveal', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     tcr.buy(1);
+    it('submit - commit/reveal', async () => {
+        tcr.buy(1);
 
-    //     const tokenAddress = await tcr.token();
-    //     const token = await DaoToken.at(tokenAddress);
-    //     await token.approve(tcrAddress, 100000);
+        const tokenAddress = await tcr.token();
+        const token = await DaoToken.at(tokenAddress);
+        await token.approve(tcr.address, 100000);
 
-    //     const currentBallotIndex = await tcr.currentBallotIndex();
-    //     const index = currentBallotIndex.toNumber();
-    //     const randomEnsEntry = 'test-' + Math.random().toString() + '.eth';
+        const currentBallotIndex = await tcr.currentBallotIndex();
+        assert.strictEqual(currentBallotIndex.toNumber(), 1, 'wrong number of ballots in queue');
 
-    //     // SUBMIT
-    //     await tcr.submit(1, randomEnsEntry, 1, 'testing commit/reveal');
+        const randomEnsEntry = 'test-' + Math.random().toString() + '.eth';
 
-    //     // COMMIT
-    //     await tcr.buy(1, { from: accounts[1] });
-    //     await token.approve(tcrAddress, 100000, { from: accounts[1] });
+        // SUBMIT
+        await tcr.submit(1, randomEnsEntry, 1, 'testing commit/reveal', creator);
 
-    //     let signature = await web3.eth.sign('2', accounts[1]);
-    //     const sig = signature.substr(2);
-    //     const r = '0x' + sig.slice(0, 64);
-    //     const s = '0x' + sig.slice(64, 128);
-    //     const raw_v = '0x' + sig.slice(128, 130);
-    //     let v = web3.utils.toDecimal(raw_v);
-    //     if (v != 27 || v != 28) {
-    //         v += 27;
-    //     }
+        // COMMIT
+        await tcr.buy(1, { from: alice });
+        await token.approve(tcr.address, 100000, { from: alice });
 
-    //     await tcr.commit(1, v, r, s, { from: accounts[1] });
+        let signature = await web3.eth.sign('2', alice);
+        const sig = signature.substr(2);
+        const r = '0x' + sig.slice(0, 64);
+        const s = '0x' + sig.slice(64, 128);
+        const raw_v = '0x' + sig.slice(128, 130);
+        let v = web3.utils.toDecimal(raw_v);
+        if (v != 27 || v != 28) {
+            v += 27;
+        }
 
-    //     // fast forward to reveal phase
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber() + 1);
+        await tcr.commit(1, v, r, s, { from: alice });
 
-    //     // REVEAL
-    //     await tcr.reveal('2', { from: accounts[1] });
-    //     const revealDurationSecs = await tcr.revealDurationSecs();
-    //     await moveForwardSecs(revealDurationSecs.toNumber() + 1);
+        // fast forward to reveal phase
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber() + 1);
 
-    //     // PROCESS BALLOT
-    //     await tcr.processBallot();
+        // REVEAL
+        await tcr.reveal('2', { from: alice });
+        const revealDurationSecs = await tcr.revealDurationSecs();
+        await moveForwardSecs(revealDurationSecs.toNumber() + 1);
 
-    //     // VERIFY ENS ENTRY
-    //     const ensConfirmation = await tcr.tcr(randomEnsEntry);
-    //     assert.equal(ensConfirmation.valid, true, 'ENS entry not found');
-    // });
+        await moveForwardSecs(timings.FIVE_PERIODS * 2);
+        // PROCESS BALLOT
+        await tcr.processBallot();
+
+        // VERIFY ENS ENTRY
+        const ensConfirmation = await tcr.tcr(randomEnsEntry);
+        assert.equal(ensConfirmation.valid, true, 'ENS entry not found');
+    });
 });
