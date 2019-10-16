@@ -206,7 +206,7 @@ contract TCR {
             address(this),
             entry,
             1,
-            false,
+            true,
             "bootstrap ballot",
             address(this)
         );

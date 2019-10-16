@@ -72,7 +72,7 @@ contract('TCR', ([creator, alice, bob]) => {
     async function setupDaoMembership() {
         // Setup creator (proposer) for `transferFrom`
         const creatorBalance = await daoToken.balanceOf(creator);
-        console.log('creatorBalance.toString():', creatorBalance.toString());
+        logBaseUnits('creator balance', creatorBalance);
         await daoToken.approve(dao.address, creatorBalance);
 
         // Proposal values
@@ -170,6 +170,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('start TCR', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         const startDate = await tcr.startDate();
 
         if (startDate == 0) {
