@@ -275,37 +275,36 @@ contract('TCR', ([creator, alice, bob]) => {
         }
     });
 
-    // it('claim ballot', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     const claimed = await tcr.didClaim(0, owner);
-    //     if (claimed == false) {
-    //         await tcr.claim(0);
-    //     }
-    // });
+    it('claim ballot', async () => {
+        const claimed = await tcr.didClaim(0, creator);
+        const ballot = await tcr.ballotQueue(0);
+        if (ballot.processed === true && claimed === false) {
+            await tcr.claim(0);
+        }
+    });
 
-    // it('submit - add/remove', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     tcr.buy(1);
+    it('submit - add/remove', async () => {
+        tcr.buy(1);
 
-    //     const tokenAddress = await tcr.token();
-    //     const token = await DaoToken.at(tokenAddress);
-    //     await token.approve(tcrAddress, 100000);
+        const tokenAddress = await tcr.token();
+        const token = await DaoToken.at(tokenAddress);
+        await token.approve(tcr.address, 100000);
 
-    //     const entry = await tcr.tcr('testing.eth');
+        const entry = await tcr.tcr('testing.eth');
 
-    //     let action = 1;
+        let action = 1;
 
-    //     if (entry.valid == true) {
-    //         action = 2;
-    //     }
+        if (entry.valid == true) {
+            action = 2;
+        }
 
-    //     await tcr.submit(action, 'testing.eth', 1, 'details');
+        await tcr.submit(action, 'testing.eth', 1, 'details', creator);
 
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     const revealDurationSecs = await tcr.revealDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber() + revealDurationSecs.toNumber() + 1);
-    //     await tcr.processBallot();
-    // });
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        const revealDurationSecs = await tcr.revealDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber() + revealDurationSecs.toNumber() + 1);
+        await tcr.processBallot();
+    });
 
     // it('submit - commit/reveal', async () => {
     //     const tcr = await TCR.at(tcrAddress);
