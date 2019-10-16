@@ -206,7 +206,7 @@ contract TCR {
             address(this),
             entry,
             1,
-            false,
+            true,
             "bootstrap ballot",
             address(this)
         );
@@ -238,6 +238,7 @@ contract TCR {
 
         ballotQueue[0].votesByVoter[owner] = bootstrapSubmission;
         startDate = now;
+        currentBallotIndex = 1;
 
         emit Started(startDate);
 

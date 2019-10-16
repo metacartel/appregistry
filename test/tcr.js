@@ -16,7 +16,7 @@ const bootstrapList = [
     '0x2566190503393b80bdEd55228C61A175f40E4D42',
 ];
 
-const ens = 'metacartel.eth';
+const entry = 'metacartel.eth';
 const details = 'bootstrap ballot';
 
 const provider = new providers.JsonRpcProvider('http://localhost:8545');
@@ -72,7 +72,7 @@ contract('TCR', ([creator, alice, bob]) => {
     async function setupDaoMembership() {
         // Setup creator (proposer) for `transferFrom`
         const creatorBalance = await daoToken.balanceOf(creator);
-        console.log('creatorBalance.toString():', creatorBalance.toString());
+        logBaseUnits('creator balance', creatorBalance);
         await daoToken.approve(dao.address, creatorBalance);
 
         // Proposal values
@@ -169,177 +169,201 @@ contract('TCR', ([creator, alice, bob]) => {
         }
     });
 
-    // it('start TCR', async () => {
-    //     const startDate = await tcr.startDate();
+    it('start TCR', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
 
-    //     if (startDate == 0) {
-    //         const registry = await Registry.deployed();
-    //         const shares = '1000000000000000000';
-    //         await registry.ragequit(tcr.address, shares);
-    //         await registry.start(daoToken.address);
-    //     } else {
-    //         const newStartDate = await tcr.startDate();
-    //         assert.notEqual(newStartDate, 0, 'start date should not be zero');
-    //     }
+        const startDate = await tcr.startDate();
 
-    //     const ready = await tcr.ready();
+        if (startDate == 0) {
+            const registry = await Registry.deployed();
+            const shares = '1000000000000000000';
+            await registry.ragequit(tcr.address, shares);
+            await registry.start(daoToken.address);
+        } else {
+            const newStartDate = await tcr.startDate();
+            assert.notEqual(newStartDate, 0, 'start date should not be zero');
+        }
 
-    //     const ballotQueue = await tcr.ballotQueue(0);
-    //     const tallyQueue = await tcr.tallyQueue(0);
-    //     const pollQueue = await tcr.pollQueue(0);
-    //     const memberIndex = await tcr.memberIndex();
-    //     const newStartDate = await tcr.startDate();
-    //     assert.notEqual(newStartDate, 0, 'startdate should not be zero');
+        const ready = await tcr.ready();
 
-    //     if (memberIndex != 0) {
-    //         assert.equal(memberIndex, members.length, 'member number is not same');
-    //         assert.equal(ready, true, 'TCR should be ready');
-    //     } else {
-    //         assert.equal(ready, false, 'TCR should not be ready');
-    //     }
+        const bootstrapBallot = await tcr.ballotQueue(0);
+        const initialTally = await tcr.tallyQueue(0);
+        const initialPoll = await tcr.pollQueue(0);
+        const memberIndex = (await tcr.memberIndex()).toNumber();
+        const newStartDate = await tcr.startDate();
+        assert.notEqual(newStartDate.toNumber(), 0, 'startdate should not be zero');
 
-    //     // ballot
-    //     assert.equal(ballotQueue.action, 1, 'ballot action should be 1');
-    //     assert.equal(
-    //         ballotQueue.applicant.toLowerCase(),
-    //         tcr.address.toLowerCase(),
-    //         'applicant is not owner'
-    //     );
-    //     assert.equal(ballotQueue.ens, ens, 'ens does not match');
-    //     assert.equal(ballotQueue.deposit, 1, 'ballot amount does not match');
-    //     if (memberIndex == 0) {
-    //         assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
-    //     } else {
-    //         assert.equal(ballotQueue.processed, true, 'ballot should be processed');
-    //     }
-    //     assert.equal(ballotQueue.details, 'bootstrap ballot', 'bootstrap ballot does not match');
+        if (memberIndex != 0) {
+            assert.equal(memberIndex, bootstrapList.length, 'member number is not same');
+            assert.equal(ready, true, 'TCR should be ready');
+        } else {
+            assert.equal(ready, false, 'TCR should not be ready');
+        }
 
-    //     // tally
-    //     assert.equal(tallyQueue.yesVotes, 1, 'yes votes should be 1');
-    //     assert.equal(tallyQueue.noVotes, 0, 'no votes shoule be 0');
-    //     assert.equal(tallyQueue.unrevealedAmountTotal, 0, 'unrevealedAmountTotal should be 0');
+        // ballot
+        assert.equal(bootstrapBallot.action, 1, 'ballot action should be 1');
+        assert.equal(
+            bootstrapBallot.applicant.toLowerCase(),
+            tcr.address.toLowerCase(),
+            'applicant is not owner'
+        );
+        assert.equal(bootstrapBallot.entry, entry, 'entry does not match');
+        assert.equal(bootstrapBallot.deposit, 1, 'ballot amount does not match');
+        if (memberIndex == 0) {
+            assert.equal(bootstrapBallot.processed, false, 'ballot should not be processed');
+        } else {
+            assert.equal(bootstrapBallot.processed, true, 'ballot should be processed');
+        }
+        assert.equal(
+            bootstrapBallot.details,
+            'bootstrap ballot',
+            'bootstrap ballot does not match'
+        );
 
-    //     // poll
-    //     assert.notEqual(pollQueue.startTime, 0, 'poll start time should not be zero');
-    //     assert.notEqual(pollQueue.endTime, 0, 'poll end time should not be zero');
-    //     assert.notEqual(pollQueue.revealEndTime, 0, 'poll reveal time should not be zero');
-    // });
+        // tally
+        assert.equal(initialTally.yesVotes, 1, 'yes votes should be 1');
+        assert.equal(initialTally.noVotes, 0, 'no votes shoule be 0');
+        assert.equal(initialTally.unrevealedAmountTotal, 0, 'unrevealedAmountTotal should be 0');
 
-    // it('bootstrap TCR', async () => {
-    //     const memberIndex = await tcr.memberIndex();
-    //     const bootstrapAddress = await tcr.bootstrapList();
-    //     const bootstrapList = await BootstrapList.at(bootstrapAddress);
-    //     const members = await bootstrapList.members();
+        // poll
+        assert.notEqual(initialPoll.startTime, 0, 'poll start time should not be zero');
+        assert.notEqual(initialPoll.endTime, 0, 'poll end time should not be zero');
+        assert.notEqual(initialPoll.revealEndTime, 0, 'poll reveal time should not be zero');
+    });
 
-    //     if (memberIndex == 0) {
-    //         await tcr.bootstrap(members.length);
-    //     }
+    it('bootstrap TCR', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
 
-    //     for (let x = 0; x < members.length; x++) {
-    //         assert.equal(members[x], members[x], 'member does not match');
-    //     }
+        const memberIndex = await tcr.memberIndex();
+        const bootstrapAddress = await tcr.bootstrapList();
+        const bootstrapList = await BootstrapList.at(bootstrapAddress);
+        const members = await bootstrapList.members();
 
-    //     const newReady = await tcr.ready();
-    //     assert.equal(newReady, true, 'ready should be true');
+        if (memberIndex == 0) {
+            await tcr.bootstrap(members.length);
+        }
 
-    //     const startDate = await tcr.startDate();
-    //     assert.notEqual(startDate, 0, 'start date should not be zero');
-    // });
+        for (let x = 0; x < members.length; x++) {
+            assert.equal(members[x], members[x], 'member does not match');
+        }
 
-    // it('process ballot', async () => {
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber());
+        const newReady = await tcr.ready();
+        assert.equal(newReady, true, 'ready should be true');
 
-    //     const currentBallotIndex = await tcr.currentBallotIndex();
-    //     const ballotQueueLength = await tcr.ballotQueueLength();
+        const startDate = await tcr.startDate();
+        assert.notEqual(startDate, 0, 'start date should not be zero');
+    });
 
-    //     if (ballotQueueLength.toNumber() != currentBallotIndex.toNumber()) {
-    //         const ballotQueue = await tcr.ballotQueue(currentBallotIndex);
-    //         const pollQueue = await tcr.pollQueue(currentBallotIndex);
+    it('process ballot', async () => {
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber());
 
-    //         assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
-    //         assert.notEqual(pollQueue.startTime, 0, 'tally start time should not be zero');
-    //         await tcr.processBallot();
-    //     }
-    // });
+        const currentBallotIndex = await tcr.currentBallotIndex();
+        const ballotQueueLength = await tcr.ballotQueueLength();
 
-    // it('claim ballot', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     const claimed = await tcr.didClaim(0, owner);
-    //     if (claimed == false) {
-    //         await tcr.claim(0);
-    //     }
-    // });
+        if (ballotQueueLength.toNumber() != currentBallotIndex.toNumber()) {
+            const ballotQueue = await tcr.ballotQueue(currentBallotIndex);
+            const pollQueue = await tcr.pollQueue(currentBallotIndex);
 
-    // it('submit - add/remove', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     tcr.buy(1);
+            assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
+            assert.notEqual(pollQueue.startTime, 0, 'tally start time should not be zero');
+            await tcr.processBallot();
+        }
+    });
 
-    //     const tokenAddress = await tcr.token();
-    //     const token = await DaoToken.at(tokenAddress);
-    //     await token.approve(tcrAddress, 100000);
+    it('claim ballot', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
 
-    //     const entry = await tcr.tcr('testing.eth');
+        const claimed = await tcr.didClaim(0, creator);
+        const ballot = await tcr.ballotQueue(0);
+        if (ballot.processed === true && claimed === false) {
+            await tcr.claim(0);
+        }
+    });
 
-    //     let action = 1;
+    it('submit - add/remove', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
 
-    //     if (entry.valid == true) {
-    //         action = 2;
-    //     }
+        tcr.buy(1);
 
-    //     await tcr.submit(action, 'testing.eth', 1, 'details');
+        const tokenAddress = await tcr.token();
+        const token = await DaoToken.at(tokenAddress);
+        await token.approve(tcr.address, 100000);
 
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     const revealDurationSecs = await tcr.revealDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber() + revealDurationSecs.toNumber() + 1);
-    //     await tcr.processBallot();
-    // });
+        const entry = await tcr.tcr('testing.eth');
 
-    // it('submit - commit/reveal', async () => {
-    //     const tcr = await TCR.at(tcrAddress);
-    //     tcr.buy(1);
+        let action = 1;
 
-    //     const tokenAddress = await tcr.token();
-    //     const token = await DaoToken.at(tokenAddress);
-    //     await token.approve(tcrAddress, 100000);
+        if (entry.valid == true) {
+            action = 2;
+        }
 
-    //     const currentBallotIndex = await tcr.currentBallotIndex();
-    //     const index = currentBallotIndex.toNumber();
-    //     const randomEnsEntry = 'test-' + Math.random().toString() + '.eth';
+        await tcr.submit(action, 'testing.eth', 1, 'details', creator);
 
-    //     // SUBMIT
-    //     await tcr.submit(1, randomEnsEntry, 1, 'testing commit/reveal');
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        const revealDurationSecs = await tcr.revealDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber() + revealDurationSecs.toNumber() + 1);
+        await tcr.processBallot();
+    });
 
-    //     // COMMIT
-    //     await tcr.buy(1, { from: accounts[1] });
-    //     await token.approve(tcrAddress, 100000, { from: accounts[1] });
+    it('submit - commit/reveal', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
 
-    //     let signature = await web3.eth.sign('2', accounts[1]);
-    //     const sig = signature.substr(2);
-    //     const r = '0x' + sig.slice(0, 64);
-    //     const s = '0x' + sig.slice(64, 128);
-    //     const raw_v = '0x' + sig.slice(128, 130);
-    //     let v = web3.utils.toDecimal(raw_v);
-    //     if (v != 27 || v != 28) {
-    //         v += 27;
-    //     }
+        tcr.buy(1);
 
-    //     await tcr.commit(1, v, r, s, { from: accounts[1] });
+        const tokenAddress = await tcr.token();
+        const token = await DaoToken.at(tokenAddress);
+        await token.approve(tcr.address, 100000);
 
-    //     // fast forward to reveal phase
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber() + 1);
+        const currentBallotIndex = await tcr.currentBallotIndex();
+        assert.strictEqual(currentBallotIndex.toNumber(), 1, 'wrong number of ballots in queue');
 
-    //     // REVEAL
-    //     await tcr.reveal('2', { from: accounts[1] });
-    //     const revealDurationSecs = await tcr.revealDurationSecs();
-    //     await moveForwardSecs(revealDurationSecs.toNumber() + 1);
+        const randomEnsEntry = 'test-' + Math.random().toString() + '.eth';
 
-    //     // PROCESS BALLOT
-    //     await tcr.processBallot();
+        // SUBMIT
+        await tcr.submit(1, randomEnsEntry, 1, 'testing commit/reveal', creator);
 
-    //     // VERIFY ENS ENTRY
-    //     const ensConfirmation = await tcr.tcr(randomEnsEntry);
-    //     assert.equal(ensConfirmation.valid, true, 'ENS entry not found');
-    // });
+        // COMMIT
+        await tcr.buy(1, { from: alice });
+        await token.approve(tcr.address, 100000, { from: alice });
+
+        let signature = await web3.eth.sign('2', alice);
+        const sig = signature.substr(2);
+        const r = '0x' + sig.slice(0, 64);
+        const s = '0x' + sig.slice(64, 128);
+        const raw_v = '0x' + sig.slice(128, 130);
+        let v = web3.utils.toDecimal(raw_v);
+        if (v != 27 || v != 28) {
+            v += 27;
+        }
+
+        await tcr.commit(1, v, r, s, { from: alice });
+
+        // fast forward to reveal phase
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber() + 1);
+
+        // REVEAL
+        await tcr.reveal('2', { from: alice });
+        const revealDurationSecs = await tcr.revealDurationSecs();
+        await moveForwardSecs(revealDurationSecs.toNumber() + 1);
+
+        await moveForwardSecs(timings.FIVE_PERIODS * 2);
+        // PROCESS BALLOT
+        await tcr.processBallot();
+
+        // VERIFY ENS ENTRY
+        const ensConfirmation = await tcr.tcr(randomEnsEntry);
+        assert.equal(ensConfirmation.valid, true, 'ENS entry not found');
+    });
 });
