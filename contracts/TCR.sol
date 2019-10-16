@@ -238,6 +238,7 @@ contract TCR {
 
         ballotQueue[0].votesByVoter[owner] = bootstrapSubmission;
         startDate = now;
+        currentBallotIndex = 1;
 
         emit Started(startDate);
 

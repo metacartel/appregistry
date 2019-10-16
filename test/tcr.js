@@ -315,6 +315,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('submit - commit/reveal', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         tcr.buy(1);
 
         const tokenAddress = await tcr.token();
