@@ -276,6 +276,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('claim ballot', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         const claimed = await tcr.didClaim(0, creator);
         const ballot = await tcr.ballotQueue(0);
         if (ballot.processed === true && claimed === false) {
@@ -284,6 +288,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('submit - add/remove', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         tcr.buy(1);
 
         const tokenAddress = await tcr.token();
