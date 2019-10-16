@@ -234,6 +234,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('bootstrap TCR', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         const memberIndex = await tcr.memberIndex();
         const bootstrapAddress = await tcr.bootstrapList();
         const bootstrapList = await BootstrapList.at(bootstrapAddress);
