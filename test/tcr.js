@@ -16,7 +16,7 @@ const bootstrapList = [
     '0x2566190503393b80bdEd55228C61A175f40E4D42',
 ];
 
-const ens = 'metacartel.eth';
+const entry = 'metacartel.eth';
 const details = 'bootstrap ballot';
 
 const provider = new providers.JsonRpcProvider('http://localhost:8545');
@@ -169,61 +169,65 @@ contract('TCR', ([creator, alice, bob]) => {
         }
     });
 
-    // it('start TCR', async () => {
-    //     const startDate = await tcr.startDate();
+    it('start TCR', async () => {
+        const startDate = await tcr.startDate();
 
-    //     if (startDate == 0) {
-    //         const registry = await Registry.deployed();
-    //         const shares = '1000000000000000000';
-    //         await registry.ragequit(tcr.address, shares);
-    //         await registry.start(daoToken.address);
-    //     } else {
-    //         const newStartDate = await tcr.startDate();
-    //         assert.notEqual(newStartDate, 0, 'start date should not be zero');
-    //     }
+        if (startDate == 0) {
+            const registry = await Registry.deployed();
+            const shares = '1000000000000000000';
+            await registry.ragequit(tcr.address, shares);
+            await registry.start(daoToken.address);
+        } else {
+            const newStartDate = await tcr.startDate();
+            assert.notEqual(newStartDate, 0, 'start date should not be zero');
+        }
 
-    //     const ready = await tcr.ready();
+        const ready = await tcr.ready();
 
-    //     const ballotQueue = await tcr.ballotQueue(0);
-    //     const tallyQueue = await tcr.tallyQueue(0);
-    //     const pollQueue = await tcr.pollQueue(0);
-    //     const memberIndex = await tcr.memberIndex();
-    //     const newStartDate = await tcr.startDate();
-    //     assert.notEqual(newStartDate, 0, 'startdate should not be zero');
+        const bootstrapBallot = await tcr.ballotQueue(0);
+        const initialTally = await tcr.tallyQueue(0);
+        const initialPoll = await tcr.pollQueue(0);
+        const memberIndex = (await tcr.memberIndex()).toNumber();
+        const newStartDate = await tcr.startDate();
+        assert.notEqual(newStartDate.toNumber(), 0, 'startdate should not be zero');
 
-    //     if (memberIndex != 0) {
-    //         assert.equal(memberIndex, members.length, 'member number is not same');
-    //         assert.equal(ready, true, 'TCR should be ready');
-    //     } else {
-    //         assert.equal(ready, false, 'TCR should not be ready');
-    //     }
+        if (memberIndex != 0) {
+            assert.equal(memberIndex, bootstrapList.length, 'member number is not same');
+            assert.equal(ready, true, 'TCR should be ready');
+        } else {
+            assert.equal(ready, false, 'TCR should not be ready');
+        }
 
-    //     // ballot
-    //     assert.equal(ballotQueue.action, 1, 'ballot action should be 1');
-    //     assert.equal(
-    //         ballotQueue.applicant.toLowerCase(),
-    //         tcr.address.toLowerCase(),
-    //         'applicant is not owner'
-    //     );
-    //     assert.equal(ballotQueue.ens, ens, 'ens does not match');
-    //     assert.equal(ballotQueue.deposit, 1, 'ballot amount does not match');
-    //     if (memberIndex == 0) {
-    //         assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
-    //     } else {
-    //         assert.equal(ballotQueue.processed, true, 'ballot should be processed');
-    //     }
-    //     assert.equal(ballotQueue.details, 'bootstrap ballot', 'bootstrap ballot does not match');
+        // ballot
+        assert.equal(bootstrapBallot.action, 1, 'ballot action should be 1');
+        assert.equal(
+            bootstrapBallot.applicant.toLowerCase(),
+            tcr.address.toLowerCase(),
+            'applicant is not owner'
+        );
+        assert.equal(bootstrapBallot.entry, entry, 'entry does not match');
+        assert.equal(bootstrapBallot.deposit, 1, 'ballot amount does not match');
+        if (memberIndex == 0) {
+            assert.equal(bootstrapBallot.processed, false, 'ballot should not be processed');
+        } else {
+            assert.equal(bootstrapBallot.processed, true, 'ballot should be processed');
+        }
+        assert.equal(
+            bootstrapBallot.details,
+            'bootstrap ballot',
+            'bootstrap ballot does not match'
+        );
 
-    //     // tally
-    //     assert.equal(tallyQueue.yesVotes, 1, 'yes votes should be 1');
-    //     assert.equal(tallyQueue.noVotes, 0, 'no votes shoule be 0');
-    //     assert.equal(tallyQueue.unrevealedAmountTotal, 0, 'unrevealedAmountTotal should be 0');
+        // tally
+        assert.equal(initialTally.yesVotes, 1, 'yes votes should be 1');
+        assert.equal(initialTally.noVotes, 0, 'no votes shoule be 0');
+        assert.equal(initialTally.unrevealedAmountTotal, 0, 'unrevealedAmountTotal should be 0');
 
-    //     // poll
-    //     assert.notEqual(pollQueue.startTime, 0, 'poll start time should not be zero');
-    //     assert.notEqual(pollQueue.endTime, 0, 'poll end time should not be zero');
-    //     assert.notEqual(pollQueue.revealEndTime, 0, 'poll reveal time should not be zero');
-    // });
+        // poll
+        assert.notEqual(initialPoll.startTime, 0, 'poll start time should not be zero');
+        assert.notEqual(initialPoll.endTime, 0, 'poll end time should not be zero');
+        assert.notEqual(initialPoll.revealEndTime, 0, 'poll reveal time should not be zero');
+    });
 
     // it('bootstrap TCR', async () => {
     //     const memberIndex = await tcr.memberIndex();
