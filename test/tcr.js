@@ -233,43 +233,43 @@ contract('TCR', ([creator, alice, bob]) => {
         assert.notEqual(initialPoll.revealEndTime, 0, 'poll reveal time should not be zero');
     });
 
-    // it('bootstrap TCR', async () => {
-    //     const memberIndex = await tcr.memberIndex();
-    //     const bootstrapAddress = await tcr.bootstrapList();
-    //     const bootstrapList = await BootstrapList.at(bootstrapAddress);
-    //     const members = await bootstrapList.members();
+    it('bootstrap TCR', async () => {
+        const memberIndex = await tcr.memberIndex();
+        const bootstrapAddress = await tcr.bootstrapList();
+        const bootstrapList = await BootstrapList.at(bootstrapAddress);
+        const members = await bootstrapList.members();
 
-    //     if (memberIndex == 0) {
-    //         await tcr.bootstrap(members.length);
-    //     }
+        if (memberIndex == 0) {
+            await tcr.bootstrap(members.length);
+        }
 
-    //     for (let x = 0; x < members.length; x++) {
-    //         assert.equal(members[x], members[x], 'member does not match');
-    //     }
+        for (let x = 0; x < members.length; x++) {
+            assert.equal(members[x], members[x], 'member does not match');
+        }
 
-    //     const newReady = await tcr.ready();
-    //     assert.equal(newReady, true, 'ready should be true');
+        const newReady = await tcr.ready();
+        assert.equal(newReady, true, 'ready should be true');
 
-    //     const startDate = await tcr.startDate();
-    //     assert.notEqual(startDate, 0, 'start date should not be zero');
-    // });
+        const startDate = await tcr.startDate();
+        assert.notEqual(startDate, 0, 'start date should not be zero');
+    });
 
-    // it('process ballot', async () => {
-    //     const votingDurationSecs = await tcr.votingDurationSecs();
-    //     await moveForwardSecs(votingDurationSecs.toNumber());
+    it('process ballot', async () => {
+        const votingDurationSecs = await tcr.votingDurationSecs();
+        await moveForwardSecs(votingDurationSecs.toNumber());
 
-    //     const currentBallotIndex = await tcr.currentBallotIndex();
-    //     const ballotQueueLength = await tcr.ballotQueueLength();
+        const currentBallotIndex = await tcr.currentBallotIndex();
+        const ballotQueueLength = await tcr.ballotQueueLength();
 
-    //     if (ballotQueueLength.toNumber() != currentBallotIndex.toNumber()) {
-    //         const ballotQueue = await tcr.ballotQueue(currentBallotIndex);
-    //         const pollQueue = await tcr.pollQueue(currentBallotIndex);
+        if (ballotQueueLength.toNumber() != currentBallotIndex.toNumber()) {
+            const ballotQueue = await tcr.ballotQueue(currentBallotIndex);
+            const pollQueue = await tcr.pollQueue(currentBallotIndex);
 
-    //         assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
-    //         assert.notEqual(pollQueue.startTime, 0, 'tally start time should not be zero');
-    //         await tcr.processBallot();
-    //     }
-    // });
+            assert.equal(ballotQueue.processed, false, 'ballot should not be processed');
+            assert.notEqual(pollQueue.startTime, 0, 'tally start time should not be zero');
+            await tcr.processBallot();
+        }
+    });
 
     // it('claim ballot', async () => {
     //     const tcr = await TCR.at(tcrAddress);
