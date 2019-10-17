@@ -118,7 +118,7 @@ contract Registry {
         require(didStart == false, "TCR already started");
         require(didRagequit == true, "need to ragequit before starting TCR");
 
-        tcrContract.start(_token);
+        tcrContract.start(_token, msg.sender);
         didStart = true;
 
         emit TCRStart(address(tcrContract), name, symbol, decimals, bootstrapList);
