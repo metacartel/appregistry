@@ -188,7 +188,7 @@ contract TCR {
     // Initialization
     // -------------------------------------------------------------------------
 
-    function start(address _token) public onlyOwner returns(bool) {
+    function start(address _token, address _msgSender) public onlyOwner returns(bool) {
         require(startDate == 0, "TCR already started");
 
         // launch TCR token
@@ -236,7 +236,7 @@ contract TCR {
         tallyQueue.push(bootstrapTally);
         pollQueue.push(bootstrapPoll);
 
-        ballotQueue[0].votesByVoter[owner] = bootstrapSubmission;
+        ballotQueue[0].votesByVoter[_msgSender] = bootstrapSubmission;
         startDate = now;
         currentBallotIndex = 1;
 

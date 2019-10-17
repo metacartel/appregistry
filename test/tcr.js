@@ -259,6 +259,10 @@ contract('TCR', ([creator, alice, bob]) => {
     });
 
     it('process ballot', async () => {
+        await setupDaoMembership();
+        const shares = '1';
+        await initTcr(shares);
+
         const votingDurationSecs = await tcr.votingDurationSecs();
         await moveForwardSecs(votingDurationSecs.toNumber());
 
